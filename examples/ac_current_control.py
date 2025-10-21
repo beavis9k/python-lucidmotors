@@ -13,14 +13,24 @@ Requirements:
 - Valid Lucid account credentials
 """
 
+import sys
+import pathlib
+import getpass
 import asyncio
 import logging
+
+# Allow running straight out of the repo
+sys.path.insert(0, str(pathlib.Path(__file__).parent.parent.absolute()))
+
 from lucidmotors import LucidAPI
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+print("Please enter your Lucid account credentials.")
+username = input("Username: ")
+password = getpass.getpass()
 
 async def main():
     """Main function demonstrating AC current control."""
@@ -30,7 +40,7 @@ async def main():
         try:
             # Login with your credentials
             logger.info("Logging in...")
-            await api.login("your_email@example.com", "your_password")
+            await api.login(username, password)
             logger.info("Login successful!")
 
             # Get your vehicles
@@ -54,7 +64,7 @@ async def main():
             logger.info(f"  Requested Limit: {current_settings['requested_limit']}A")
 
             # Example: Set AC current limit to 32A (common for home charging)
-            new_limit = 32
+            new_limit = int(input("New current limit (A): "))
             logger.info(f"Setting AC current limit to {new_limit}A...")
             await api.set_ac_current_limit(vehicle, new_limit)
             logger.info("AC current limit set successfully!")
@@ -73,23 +83,6 @@ async def main():
             logger.info(f"  Energy Limit: {updated_settings['energy_limit']}A")
             logger.info(f"  Requested Limit: {updated_settings['requested_limit']}A")
 
-            # Example: Set AC current limit to 16A (lower power charging)
-            lower_limit = 16
-            logger.info(f"Setting AC current limit to {lower_limit}A...")
-            await api.set_ac_current_limit(vehicle, lower_limit)
-            logger.info("AC current limit set successfully!")
-
-            # Wait and get final settings
-            await asyncio.sleep(2)
-            final_settings = await api.get_ac_current_settings(vehicle)
-
-            logger.info("Final AC Current Settings:")
-            logger.info(
-                f"  Active Session Limit: {final_settings['active_session_limit']}A"
-            )
-            logger.info(f"  Energy Limit: {final_settings['energy_limit']}A")
-            logger.info(f"  Requested Limit: {final_settings['requested_limit']}A")
-
         except Exception as e:
             logger.error(f"Error: {e}")
             raise
@@ -101,7 +94,6 @@ if __name__ == "__main__":
     print(
         "This script demonstrates how to control AC current limits for your Lucid vehicle."
     )
-    print("Make sure to update the credentials in the script before running.")
     print()
 
     # Run the example
